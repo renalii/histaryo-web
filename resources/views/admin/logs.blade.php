@@ -1,7 +1,24 @@
 @extends('layouts.sidebar')
 
 @section('content')
-    <h2 style="font-size: 1.75rem; font-weight: bold; margin-bottom: 1rem;">📋 System Logs</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="font-size: 1.75rem; font-weight: bold;">📋 System Logs</h2>
+
+        <!-- Clear Logs Button -->
+        <form action="{{ route('admin.logs.clear') }}" method="POST"
+              onsubmit="return confirm('⚠️ Are you sure you want to clear all logs? This cannot be undone.');">
+            @csrf
+            @method('DELETE')
+            <button type="submit"
+                    style="background: #ef4444; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer;">
+                🗑️ Clear Logs
+            </button>
+        </form>
+    </div>
+
+    @if(session('status'))
+        <p style="color: green; margin-bottom: 1rem;">{{ session('status') }}</p>
+    @endif
 
     @if(count($logs) === 0)
         <p style="color: #6b7280;">No logs found.</p>

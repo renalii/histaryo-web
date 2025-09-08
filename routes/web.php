@@ -9,6 +9,7 @@ use App\Http\Controllers\Curator\DashboardController;
 use App\Http\Controllers\Admin\AdminController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\QrController;
+use App\Http\Controllers\Admin\ReportController;
 
 Route::view('/', 'home')->name('home');
 Route::view('/about', 'about')->name('about');
@@ -62,4 +63,9 @@ Route::prefix('admin')->middleware(['web'])->group(function () {
     Route::get('/curators', [AdminController::class, 'curators'])->name('admin.curators');
     Route::get('/landmarks', [AdminController::class, 'landmarks'])->name('admin.landmarks');
     Route::get('/logs', [AdminController::class, 'logs'])->name('admin.logs');
+    Route::delete('/logs/clear', [AdminController::class, 'clearLogs'])->name('admin.logs.clear');
+
+     // Reports
+    Route::get('/reports', [ReportController::class, 'index'])->name('admin.reports');
+    Route::get('/reports/export/{any?}', [ReportController::class, 'export'])->name('admin.reports.export');
 });

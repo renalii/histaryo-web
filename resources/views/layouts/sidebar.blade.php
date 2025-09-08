@@ -133,6 +133,7 @@
           <!-- <a href="{{ route('admin.curators') }}">🧑‍🏫 <span>Curators</span></a> -->
           <a href="{{ route('admin.landmarks') }}">🧭 <span>Landmarks</span></a>
           <a href="{{ route('admin.logs') }}">📋 <span>Logs</span></a>
+          <a href="{{ route('admin.reports') }}">📊 <span>Reports</span></a>
         @endif
       </nav>
     </div>

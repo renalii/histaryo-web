@@ -19,11 +19,57 @@ class DashboardController extends Controller
     {
         $db = $this->firestore;
 
+        // ---- Totals ----
         $landmarksCount = $this->countDocuments($db->collection('landmarks')->documents());
+        $triviaCount    = $this->countDocuments($db->collectionGroup('trivia')->documents());
 
-        $triviaSnap   = $db->collectionGroup('trivia')->documents();
-        $triviaCount  = $this->countDocuments($triviaSnap);
+        // ---- Weekly breakdown (last 8 weeks) ----
+        $weeks = collect(range(7, 0))->map(function ($i) {
+            return Carbon::now()->startOfWeek()->subWeeks($i);
+        });
 
+        $weekLabels = [];
+        $landmarksPerWeek = [];
+        $triviaPerWeek    = [];
+
+        // Fetch all landmarks + trivia once
+        $landmarksDocs = $db->collection('landmarks')->documents();
+        $triviaDocs    = $db->collectionGroup('trivia')->documents();
+
+        foreach ($weeks as $startOfWeek) {
+            $endOfWeek = $startOfWeek->copy()->endOfWeek();
+
+            // Week label like "Aug 12–18"
+            $weekLabels[] = $startOfWeek->format('M d') . '–' . $endOfWeek->format('M d');
+
+            // Landmarks count
+            $lCount = 0;
+            foreach ($landmarksDocs as $doc) {
+                $d = $doc->data();
+                if (!empty($d['created_at'])) {
+                    $createdAt = Carbon::parse((string)$d['created_at']);
+                    if ($createdAt->between($startOfWeek, $endOfWeek)) {
+                        $lCount++;
+                    }
+                }
+            }
+            $landmarksPerWeek[] = $lCount;
+
+            // Trivia count
+            $tCount = 0;
+            foreach ($triviaDocs as $doc) {
+                $d = $doc->data();
+                if (!empty($d['created_at'])) {
+                    $createdAt = Carbon::parse((string)$d['created_at']);
+                    if ($createdAt->between($startOfWeek, $endOfWeek)) {
+                        $tCount++;
+                    }
+                }
+            }
+            $triviaPerWeek[] = $tCount;
+        }
+
+        // ---- Recent Logs ----
         $recentLogs = [];
         $logsSnap = $db->collection('logs')
             ->orderBy('timestamp', 'DESC')
@@ -39,6 +85,7 @@ class DashboardController extends Controller
             ];
         }
 
+        // ---- Recent Landmarks ----
         $recentLandmarks = [];
         $landmarksRecentSnap = $db->collection('landmarks')
             ->orderBy('created_at', 'DESC')
@@ -68,12 +115,16 @@ class DashboardController extends Controller
             ],
             'recentLandmarks' => $recentLandmarks,
             'recentLogs'      => $recentLogs,
+
+            // pass chart data
+            'weekLabels'       => $weekLabels,
+            'landmarksPerWeek' => $landmarksPerWeek,
+            'triviaPerWeek'    => $triviaPerWeek,
         ]);
     }
 
     private function countDocuments($snapshot): int
     {
-        
         if (is_object($snapshot) && method_exists($snapshot, 'size')) {
             return (int) $snapshot->size();
         }
@@ -103,7 +154,7 @@ class DashboardController extends Controller
                     return Carbon::instance($dt)->diffForHumans();
                 }
             } catch (\Throwable $e) {
-                // fall through to generic parse
+                // fall through
             }
         }
 

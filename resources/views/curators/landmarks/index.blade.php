@@ -188,7 +188,8 @@
         position: relative;
         animation: fadeIn 0.3s ease-in-out;
         font-family: 'Segoe UI', sans-serif;
-        max-height:95vh;
+        max-height:93vh;
+        overflow-y: auto;
     }
 
     .modal-content h3 {

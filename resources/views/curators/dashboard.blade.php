@@ -59,7 +59,7 @@
             </div>
         </div>
 
-        <div class="card stat" style="grid-column: span 3; background:#fff; border-radius:14px; padding:1rem; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+        <!-- <div class="card stat" style="grid-column: span 3; background:#fff; border-radius:14px; padding:1rem; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
             <div style="display:flex; align-items:center; justify-content:space-between;">
                 <div>
                     <p style="margin:0; color:#6b7280; font-size:.9rem;">Pending Reviews</p>
@@ -67,7 +67,7 @@
                 </div>
                 <div class="pill" style="background:#fff7ed; color:#c2410c; padding:.4rem .6rem; border-radius:999px; font-size:.8rem;">Needs action</div>
             </div>
-        </div>
+        </div> -->
 
         <div class="card stat" style="grid-column: span 3; background:#fff; border-radius:14px; padding:1rem; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
             <div style="display:flex; align-items:center; justify-content:space-between;">
@@ -127,7 +127,7 @@
                                 <th style="padding:.5rem .25rem;">Name</th>
                                 <th style="padding:.5rem .25rem;">Created</th>
                                 <th style="padding:.5rem .25rem;">Location</th>
-                                <th style="padding:.5rem .25rem; text-align:right;">Actions</th>
+                                <!-- <th style="padding:.5rem .25rem; text-align:right;">Actions</th> -->
                             </tr>
                         </thead>
                         <tbody>
@@ -138,8 +138,8 @@
                                     <td style="padding:.6rem .25rem; color:#374151;">{{ $l['location'] ?? (($l['latitude'] ?? '').', '.($l['longitude'] ?? '')) }}</td>
                                     <td style="padding:.6rem .25rem; text-align:right;">
                                         @if (!empty($l['id']))
-                                            <a href="{{ route('landmarks.show', $l['id']) }}" style="text-decoration:none; color:#2563eb; margin-right:.5rem;">View</a>
-                                            <a href="{{ route('landmarks.edit', $l['id']) }}" style="text-decoration:none; color:#92400e;">Edit</a>
+                                            <!-- <a href="{{ route('landmarks.show', $l['id']) }}" style="text-decoration:none; color:#2563eb; margin-right:.5rem;">View</a> -->
+                                            <!-- <a href="{{ route('landmarks.edit', $l['id']) }}" style="text-decoration:none; color:#92400e;">Edit</a> -->
                                         @else
                                             <span style="color:#9ca3af;">—</span>
                                         @endif

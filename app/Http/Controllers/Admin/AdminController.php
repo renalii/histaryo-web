@@ -162,4 +162,17 @@ class AdminController extends Controller
 
         return view('admin.logs', compact('logs', 'userRoles'));
     }
+
+    public function clearLogs()
+    {
+        $logsCollection = $this->firestore->collection('logs');
+        $documents = $logsCollection->documents();
+
+        foreach ($documents as $doc) {
+            $doc->reference()->delete();
+        }
+
+        return redirect()->route('admin.logs')->with('status', '✅ All logs have been cleared.');
+    }
+
 }

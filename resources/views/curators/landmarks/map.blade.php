@@ -86,9 +86,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 <strong>${escapeHtml(l.name ?? 'Untitled')}</strong><br>
                 ${l.description ? escapeHtml(l.description) + '<br>' : ''}
                 ${l.video_url ? `<a href="${escapeAttr(l.video_url)}" target="_blank" rel="noopener">🎥 Watch Video</a><br>` : ''}
-                <a href="/submit/${escapeAttr(l.id)}" target="_blank" rel="noopener">✍️ Contribute a Tip</a>
+                
             </div>
         `;
+
+        // <a href="/submit/${escapeAttr(l.id)}" target="_blank" rel="noopener">✍️ Contribute a Tip</a>
 
         const marker = new mapboxgl.Marker()
             .setLngLat([l.longitude, l.latitude])

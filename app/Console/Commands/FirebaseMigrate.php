@@ -3,40 +3,96 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
 use App\Services\FirebaseService;
 
 class FirebaseMigrate extends Command
 {
-    protected $signature = 'firebase:migrate';
-    protected $description = 'Seed or reset Firestore collections';
+    protected $signature = 'firebase:migrate 
+        {--fresh : Delete all Firebase data (Auth, Firestore, Storage) then re-run migrations} 
+        {--rollback : Rollback the last Firebase migration batch}';
 
-    protected $firestore;
-
-    public function __construct(FirebaseService $firebaseService)
-    {
-        parent::__construct();
-        $this->firestore = $firebaseService->firestore();
-    }
+    protected $description = 'Run Firestore/Firebase migrations';
 
     public function handle()
     {
-        $this->info("🔄 Migrating Firebase data...");
+        $path = database_path('firebase-migrations');
+        $firebase = app(FirebaseService::class);
 
-        // Example: delete all in 'landmarks' collection
-        $documents = $this->firestore->collection('landmarks')->documents();
-        foreach ($documents as $doc) {
-            $doc->reference()->delete();
+        // 🔥 Handle --fresh: wipe ALL Firebase data
+        if ($this->option('fresh')) {
+            $this->warn('⚠ Deleting ALL Firebase data (Auth users + Firestore collections + Storage)...');
+
+            // 1. Delete all users
+            $auth = $firebase->auth();
+            $users = $auth->listUsers();
+            foreach ($users as $user) {
+                $auth->deleteUser($user->uid);
+                $this->line("   Deleted user: {$user->email}");
+            }
+
+            // 2. Delete all Firestore collections
+            $firestore = $firebase->firestore();
+            $collections = $firestore->collections();
+            foreach ($collections as $collection) {
+                $this->deleteCollection($collection, 50);
+                $this->line("   Deleted collection: {$collection->id()}");
+            }
+
+            // 3. Delete all Firebase Storage files
+            $storage = $firebase->storage();
+            $bucket = $storage->getBucket();
+            foreach ($bucket->objects() as $object) {
+                $bucket->object($object->name())->delete();
+                $this->line("   Deleted storage file: {$object->name()}");
+            }
+
+            $this->info('✅ Firebase data wiped!');
         }
 
-        // Example: seed sample data
-        $this->firestore->collection('landmarks')->add([
-            'name' => "Magellan's Cross",
-            'latitude' => 10.2936,
-            'longitude' => 123.9020,
-            'description' => "A significant religious artifact in Cebu.",
-            'created_at' => now(),
-        ]);
+        // Run migrations
+        if (!File::exists($path)) {
+            $this->error("Firebase migrations folder not found: $path");
+            return Command::FAILURE;
+        }
 
-        $this->info("✅ Firebase migration complete.");
+        $files = File::files($path);
+
+        foreach ($files as $file) {
+            $this->info("Running migration: " . $file->getFilename());
+            $migration = require $file->getPathname();
+
+            if ($this->option('rollback')) {
+                if (method_exists($migration, 'down')) {
+                    $migration->down();
+                    $this->line(" ↳ Rolled back " . $file->getFilename());
+                } else {
+                    $this->warn(" ↳ No down() method for " . $file->getFilename());
+                }
+            } else {
+                $migration->up();
+                $this->line(" ↳ Migrated " . $file->getFilename());
+            }
+        }
+
+        return Command::SUCCESS;
+    }
+
+    /**
+     * Recursively delete all docs in a Firestore collection
+     */
+    protected function deleteCollection($collectionRef, $batchSize = 50)
+    {
+        $documents = $collectionRef->limit($batchSize)->documents();
+        $deleted = 0;
+
+        foreach ($documents as $document) {
+            $document->reference()->delete();
+            $deleted++;
+        }
+
+        if ($deleted >= $batchSize) {
+            $this->deleteCollection($collectionRef, $batchSize);
+        }
     }
 }
